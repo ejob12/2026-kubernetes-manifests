@@ -280,4 +280,4 @@ resource "aws_iam_role_policy_attachment" "eks_vpc_resource_controller" {
 }
 
 # EKS Cluster
-resource "aws_eks_cluster
+resource "aws_eks_cluster" "eks_cluster
