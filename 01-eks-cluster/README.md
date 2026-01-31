@@ -30,7 +30,7 @@ terraform init
 
 The default configuration includes:
 - **Cluster Name**: liontech-dev
-- **Region**: ca-central-1
+- **Region**: us-east-1
 - **Kubernetes Version**: 1.34
 - **Node Configuration**: 2 desired, 1 minimum, 4 maximum nodes
 - **Instance Type**: t3.medium
@@ -38,7 +38,7 @@ The default configuration includes:
 To customize, create a `terraform.tfvars` file:
 
 ```hcl
-aws_region       = "ca-central-1"
+aws_region       = "us-east-1"
 cluster_name     = "liontech-dev"
 kubernetes_version = "1.34"
 desired_size     = 2
@@ -62,7 +62,7 @@ terraform apply
 After the cluster is created, configure your local kubeconfig:
 
 ```bash
-aws eks update-kubeconfig --region ca-central-1 --name liontech-dev
+aws eks update-kubeconfig --region us-east-1 --name liontech-dev
 ```
 
 Or use the output from Terraform:
@@ -127,13 +127,13 @@ terraform destroy
 ### Check Cluster Status
 
 ```bash
-aws eks describe-cluster --name liontech-dev --region ca-central-1
+aws eks describe-cluster --name liontech-dev --region us-east-1
 ```
 
 ### View Node Group Status
 
 ```bash
-aws eks describe-nodegroup --cluster-name liontech-dev --nodegroup-name liontech-dev-node-group --region ca-central-1
+aws eks describe-nodegroup --cluster-name liontech-dev --nodegroup-name liontech-dev-node-group --region us-east-1
 ```
 
 ### Verify Nodes are Ready

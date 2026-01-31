@@ -1,0 +1,130 @@
+name: EKS Cluster Creation
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - "01-eks-cluster/**"
+      - ".github/workflows/eks-creation.yml"
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "01-eks-cluster/**"
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+env:
+  AWS_REGION: us-east-1
+  TERRAFORM_VERSION: 1.5.0
+
+jobs:
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    outputs:
+      tf_plan_exitcode: ${{ steps.tf-plan.outputs.exitcode }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform Init
+        working-directory: ./01-eks-cluster
+        run: terraform init
+
+      - name: Terraform Format Check
+        working-directory: ./01-eks-cluster
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Validate
+        working-directory: ./01-eks-cluster
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: tf-plan
+        working-directory: ./01-eks-cluster
+        run: terraform plan -out=tfplan
+        continue-on-error: true
+
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v3
+        with:
+          name: tfplan
+          path: ./01-eks-cluster/tfplan
+          retention-days: 5
+
+  # terraform-apply:
+  #   name: Terraform Apply
+  #   needs: terraform-plan
+  #   runs-on: ubuntu-latest
+  #   # Only run on push to main branch (not on PRs or manual trigger)
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.terraform-plan.outputs.tf_plan_exitcode == '0'
+  #
+  #   steps:
+  #     - name: Checkout Repository
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Configure AWS Credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ env.AWS_REGION }}
+  #
+  #     - name: Setup Terraform
+  #       uses: hashicorp/setup-terraform@v2
+  #       with:
+  #         terraform_version: ${{ env.TERRAFORM_VERSION }}
+  #
+  #     - name: Terraform Init
+  #       working-directory: ./01-eks-cluster
+  #       run: terraform init
+  #
+  #     - name: Download Terraform Plan
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: tfplan
+  #         path: ./01-eks-cluster
+  #
+  #     - name: Terraform Apply
+  #       working-directory: ./01-eks-cluster
+  #       run: terraform apply -auto-approve tfplan
+  #
+  #     - name: Get Cluster Info
+  #       working-directory: ./01-eks-cluster
+  #       run: |
+  #         echo "### EKS Cluster Created Successfully! 🎉" >> $GITHUB_STEP_SUMMARY
+  #         echo "" >> $GITHUB_STEP_SUMMARY
+  #         echo "**Cluster Details:**" >> $GITHUB_STEP_SUMMARY
+  #         terraform output -json >> $GITHUB_STEP_SUMMARY
+
+  notify:
+    name: Notify on Completion
+    needs: [terraform-plan]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Status Check
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ EKS Cluster deployment completed successfully"
+          else
+            echo "❌ EKS Cluster deployment failed"
+            exit 1
+          fi
