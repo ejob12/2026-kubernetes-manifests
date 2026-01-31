@@ -10,3 +10,4 @@ terraform {
     # dynamodb_table = "terraform-locks"
   }
 }
+
