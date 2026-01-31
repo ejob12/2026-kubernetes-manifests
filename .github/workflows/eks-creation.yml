@@ -47,6 +47,11 @@ jobs:
         working-directory: ./01-eks-cluster
         run: terraform init
 
+      # 👇 New step: automatically format Terraform files
+      - name: Terraform Auto Format
+        working-directory: ./01-eks-cluster
+        run: terraform fmt -recursive
+
       - name: Terraform Format Check
         working-directory: ./01-eks-cluster
         run: terraform fmt -check -recursive
