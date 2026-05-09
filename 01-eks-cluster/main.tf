@@ -18,8 +18,8 @@ resource "aws_vpc" "eks_vpc" {
   enable_dns_support   = true
 
   tags = {
-    Name                                           = "${var.cluster_name}-vpc"
-    "kubernetes.io/cluster/${var.cluster_name}"   = "shared"
+    Name                                        = "${var.cluster_name}-vpc"
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
   }
 }
 
@@ -40,9 +40,9 @@ resource "aws_subnet" "public_subnet_1" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name                                           = "${var.cluster_name}-public-subnet-1"
-    "kubernetes.io/cluster/${var.cluster_name}"   = "shared"
-    "kubernetes.io/role/elb"                      = "1"
+    Name                                        = "${var.cluster_name}-public-subnet-1"
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    "kubernetes.io/role/elb"                    = "1"
   }
 }
 
@@ -53,9 +53,9 @@ resource "aws_subnet" "public_subnet_2" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name                                           = "${var.cluster_name}-public-subnet-2"
-    "kubernetes.io/cluster/${var.cluster_name}"   = "shared"
-    "kubernetes.io/role/elb"                      = "1"
+    Name                                        = "${var.cluster_name}-public-subnet-2"
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    "kubernetes.io/role/elb"                    = "1"
   }
 }
 
@@ -66,9 +66,9 @@ resource "aws_subnet" "private_subnet_1" {
   availability_zone = "${var.aws_region}a"
 
   tags = {
-    Name                                           = "${var.cluster_name}-private-subnet-1"
-    "kubernetes.io/cluster/${var.cluster_name}"   = "shared"
-    "kubernetes.io/role/internal-elb"             = "1"
+    Name                                        = "${var.cluster_name}-private-subnet-1"
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    "kubernetes.io/role/internal-elb"           = "1"
   }
 }
 
@@ -78,9 +78,9 @@ resource "aws_subnet" "private_subnet_2" {
   availability_zone = "${var.aws_region}b"
 
   tags = {
-    Name                                           = "${var.cluster_name}-private-subnet-2"
-    "kubernetes.io/cluster/${var.cluster_name}"   = "shared"
-    "kubernetes.io/role/internal-elb"             = "1"
+    Name                                        = "${var.cluster_name}-private-subnet-2"
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    "kubernetes.io/role/internal-elb"           = "1"
   }
 }
 
@@ -254,8 +254,8 @@ resource "aws_iam_role" "eks_cluster_role" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action    = "sts:AssumeRole"
-        Effect    = "Allow"
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
         Principal = {
           Service = "eks.amazonaws.com"
         }
@@ -281,9 +281,9 @@ resource "aws_iam_role_policy_attachment" "eks_vpc_resource_controller" {
 
 # EKS Cluster
 resource "aws_eks_cluster" "eks_cluster" {
-  name            = var.cluster_name
-  version         = var.kubernetes_version
-  role_arn        = aws_iam_role.eks_cluster_role.arn
+  name     = var.cluster_name
+  version  = var.kubernetes_version
+  role_arn = aws_iam_role.eks_cluster_role.arn
 
   vpc_config {
     subnet_ids              = [aws_subnet.public_subnet_1.id, aws_subnet.public_subnet_2.id, aws_subnet.private_subnet_1.id, aws_subnet.private_subnet_2.id]
